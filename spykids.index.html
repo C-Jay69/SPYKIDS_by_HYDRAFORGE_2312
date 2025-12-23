@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>GuardianSafe — Family Safety (Consent-Based Demo)</title>
+  <meta name="description" content="A consent-based family safety demo showing how a parent portal and a child app can share location and activity logs with explicit permission." />
+  <!-- TailwindCSS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    /* Subtle background grid */
+    .bg-grid {
+      background-image:
+        linear-gradient(to right, rgba(148,163,184,0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148,163,184,0.08) 1px, transparent 1px);
+      background-size: 36px 36px;
+      background-position: -1px -1px;
+    }
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-slate-900 focus:px-4 focus:py-2 focus:text-white">Skip to content</a>
+  <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <div class="flex items-center gap-3">
+        <div class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-400 to-violet-500 text-slate-950 font-black">G</div>
+        <div>
+          <div class="text-sm font-semibold tracking-wide">GuardianSafe</div>
+          <div class="text-xs text-slate-400">Family safety — consent-based demo</div>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a class="text-slate-300 hover:text-white" href="#/">Overview</a>
+        <a class="text-slate-300 hover:text-white" href="#features">Features</a>
+        <a class="text-slate-300 hover:text-white" href="#how">How it works</a>
+        <a class="text-slate-300 hover:text-white" href="#faq">FAQ</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="btnParent" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white hover:bg-white/10">Parent Portal</button>
+        <button id="btnChild" class="rounded-xl bg-gradient-to-r from-cyan-400 to-violet-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:opacity-95">Child App</button>
+      </div>
+    </div>
+  </header>
+  <main id="main" class="bg-grid">
+    <div id="viewRoot"></div>
+  </main>
+  <footer class="border-t border-white/10 bg-slate-950">
+    <div class="mx-auto max-w-6xl px-4 py-10">
+      <div class="grid gap-6 md:grid-cols-3">
+        <div class="space-y-2">
+          <div class="text-sm font-semibold">GuardianSafe</div>
+          <p class="text-sm text-slate-400">A deploy-ready, single-page demo illustrating a <span class="text-slate-300">consent-based</span> parent/child safety workflow (pairing, telemetry, activity logs).</p>
+        </div>
+        <div class="space-y-2">
+          <div class="text-sm font-semibold">Important</div>
+          <p class="text-sm text-slate-400">This demo does <span class="text-slate-300">not</span> provide stealth monitoring or spyware. Real products must use OS-level parental control frameworks, obtain explicit consent where required, and comply with local laws and platform policies.</p>
+        </div>
+        <div class="space-y-2">
+          <div class="text-sm font-semibold">Deployment</div>
+          <p class="text-sm text-slate-400">Host as a static site (e.g., S3/CloudFront, Netlify, Vercel). For real-world telemetry, add a secure backend (OAuth, device attestation, encrypted storage, audit logs).</p>
+        </div>
+      </div>
+      <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-slate-500">
+        <span>© <span id="year"></span> GuardianSafe Demo</span>
+        <span>Built for safe demonstration only</span>
+      </div>
+    </div>
+  </footer>
+  <!-- Templates -->
+  <template id="tplLanding">
+    <section class="relative overflow-hidden">
+      <div class="absolute inset-0 opacity-30">
+        <div class="absolute -top-24 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-400/40 via-violet-500/30 to-fuchsia-500/30 blur-3xl"></div>
+      </div>
+      <div class="relative mx-auto max-w-6xl px-4 py-16 md:py-20">
+        <div class="grid items-center gap-10 md:grid-cols-2">
+          <div>
+            <p class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+              <span class="h-2 w-2 rounded-full bg-cyan-400"></span>
+              Consent-based pairing demo (two-tab)
+            </p>
+            <h1 class="mt-5 text-4xl font-extrabold tracking-tight md:text-5xl">
+              Family safety tools that prioritize <span class="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-transparent">privacy</span> and <span class="bg-gradient-to-r from-violet-300 to-fuchsia-400 bg-clip-text text-transparent">consent</span>
+            </h1>
+            <p class="mt-4 max-w-xl text-slate-300">
+              This is a deploy-ready single-page demo that shows how a <span class="text-slate-200">Parent Portal</span> and a <span class="text-slate-200">Child App</span> can pair and share <span class="text-slate-200">location</span> + <span class="text-slate-200">activity logs</span> with explicit permission.
+              It does not implement covert monitoring.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button data-nav="parent" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white hover:bg-white/10">Open Parent Portal</button>
+              <button data-nav="child" class="rounded-xl bg-gradient-to-r from-cyan-400 to-violet-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:opacity-95">Open Child App</button>
+              <a href="#features" class="rounded-xl px-4 py-2.5 text-sm text-slate-300 hover:text-white">Explore features →</a>
+            </div>
+            <div class="mt-8 grid gap-3 sm:grid-cols-3">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-xs text-slate-400">Pairing</div>
+                <div class="mt-1 text-sm font-semibold">One-time code</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-xs text-slate-400">Telemetry</div>
+                <div class="mt-1 text-sm font-semibold">Location sharing</div>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div class="text-xs text-slate-400">Audit</div>
+                <div class="mt-1 text-sm font-semibold">Exportable logs</div>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6 shadow-2xl shadow-black/40">
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-semibold">Quickstart (2 tabs)</div>
+              <span class="text-xs text-slate-400">~60 seconds</span>
+            </div>
+            <ol class="mt-4 space-y-3 text-sm text-slate-300">
+              <li class="flex gap-3"><span class="mt-0.5 inline-grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-xs font-semibold">1</span><span>Open <span class="text-slate-100">Child App</span> and generate a pairing code.</span></li>
+              <li class="flex gap-3"><span class="mt-0.5 inline-grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-xs font-semibold">2</span><span>Open <span class="text-slate-100">Parent Portal</span> (preferably in another tab) and enter the same code.</span></li>
+              <li class="flex gap-3"><span class="mt-0.5 inline-grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-xs font-semibold">3</span><span>On the child tab, tap <span class="text-slate-100">Share Location</span> and add a few activity logs.</span></li>
+              <li class="flex gap-3"><span class="mt-0.5 inline-grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-xs font-semibold">4</span><span>Watch events stream into the parent feed and export logs to CSV.</span></li>
+            </ol>
+            <div class="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+              <div class="text-xs font-semibold text-amber-200">Safety & compliance note</div>
+              <p class="mt-1 text-xs text-amber-100/90">Building or deploying covert monitoring of messages/social accounts/location without permission can be illegal and harmful. This demo intentionally requires explicit user actions and browser permissions.</p>
+            </div>
+          </div>
+        </div>
+        <div id="features" class="mt-16 scroll-mt-24">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-bold">Features (demo)</h2>
+              <p class="mt-2 max-w-2xl text-sm text-slate-300">Designed to illustrate architecture patterns safely—no stealth collection, no device exploits, no third-party account scraping.</p>
+            </div>
+          </div>
+          <div class="mt-6 grid gap-4 md:grid-cols-3">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div class="text-sm font-semibold">Consent-first telemetry</div>
+              <p class="mt-2 text-sm text-slate-300">Child explicitly shares location via browser permission, and can stop sharing instantly.</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div class="text-sm font-semibold">Real-time feed</div>
+              <p class="mt-2 text-sm text-slate-300">Parent sees events live using a same-origin message channel (BroadcastChannel) — a stand-in for a secure backend stream.</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div class="text-sm font-semibold">Export & audit</div>
+              <p class="mt-2 text-sm text-slate-300">Export logs to CSV; local persistence via localStorage for the demo.</p>
+            </div>
+          </div>
+        </div>
+        <div id="how" class="mt-16 scroll-mt-24">
+          <h2 class="text-2xl font-bold">How it works (in this demo)</h2>
+          <div class="mt-6 grid gap-4 md:grid-cols-2">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div class="text-sm font-semibold">Parent Portal</div>
+              <ul class="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
+                <li>Enters a pairing code (like scanning a QR in real apps).</li>
+                <li>Subscribes to a real-time event stream.</li>
+                <li>Displays last known location and activity feed.</li>
+                <li>Exports events to CSV for transparency.</li>
+              </ul>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div class="text-sm font-semibold">Child App</div>
+              <ul class="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
+                <li>Generates/enters a pairing code and shows consent text.</li>
+                <li>Sends location only after explicit permission and action.</li>
+                <li>Lets the child add activity logs (simulated categories).</li>
+                <li>Provides an always-visible “Stop sharing” control.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div class="text-sm font-semibold">What’s intentionally NOT included</div>
+            <p class="mt-2 text-sm text-slate-300">Hidden installation, credential theft, reading private messages/social accounts without consent, background GPS tracking without permission, and other spyware behaviors.</p>
+          </div>
+        </div>
+        <div id="faq" class="mt-16 scroll-mt-24">
+          <h2 class="text-2xl font-bold">FAQ</h2>
+          <div class="mt-6 grid gap-4 md:grid-cols-2">
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div class="text-sm font-semibold">Is this a clone of any specific product?</div>
+              <p class="mt-2 text-sm text-slate-300">No. It’s an original, generic landing + demo workflow that avoids copying branding/content and avoids spyware functionality.</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div class="text-sm font-semibold">Can it really monitor a phone’s social apps and messages?</div>
+              <p class="mt-2 text-sm text-slate-300">No. Browsers can’t access other apps’ data, and covert access is unsafe/illegal. This demo only shares what the “child” explicitly enters or grants (e.g., geolocation).</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div class="text-sm font-semibold">How would a real, compliant product work?</div>
+              <p class="mt-2 text-sm text-slate-300">Use platform parental control APIs (iOS Screen Time / Android Family Link equivalents), clear disclosures, opt-in consent, encrypted telemetry to a backend, and strong auth/auditing.</p>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-white/5 p-6">
+              <div class="text-sm font-semibold">Why no backend?</div>
+              <p class="mt-2 text-sm text-slate-300">Your environment here is a single-file site. The demo simulates “backend-like” behavior using a message channel + local persistence.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </template>
+  <template id="tplParent">
+    <section class="mx-auto max-w-6xl px-4 py-10">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-bold">Parent Portal</h1>
+          <p class="mt-1 text-sm text-slate-300">Join a paired session to receive consent-based events from the child app (same origin, two tabs).</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button data-nav="home" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">Back</button>
+          <button id="parentExport" class="rounded-xl bg-white text-slate-950 px-3 py-2 text-sm font-semibold hover:opacity-95">Export CSV</button>
+        </div>
+      </div>
+      <div class="mt-6 grid gap-4 lg:grid-cols-3">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5 lg:col-span-1">
+          <div class="text-sm font-semibold">Pairing</div>
+          <p class="mt-2 text-sm text-slate-300">Enter the code shown in the child app.</p>
+          <div class="mt-4">
+            <label class="text-xs text-slate-400" for="parentCode">Pairing code</label>
+            <div class="mt-1 flex gap-2">
+              <input id="parentCode" autocomplete="off" inputmode="numeric" maxlength="10" class="w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm outline-none focus:border-cyan-400/60" placeholder="e.g., 482193" />
+              <button id="parentJoin" class="rounded-xl bg-gradient-to-r from-cyan-400 to-violet-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:opacity-95">Join</button>
+            </div>
+            <div id="parentPairStatus" class="mt-3 text-xs text-slate-400">Not connected.</div>
+          </div>
+          <div class="mt-6 rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+            <div class="text-xs font-semibold text-slate-200">Tip</div>
+            <p class="mt-1 text-xs text-slate-400">Open the child app in another tab/window on the same site. BroadcastChannel works only across same-origin contexts.</p>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5 lg:col-span-2">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold">Live feed</div>
+              <p class="mt-1 text-xs text-slate-400">Events are received in real time and stored locally (demo).</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="parentClear" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">Clear</button>
+              <span id="parentCounts" class="text-xs text-slate-400">0 events</span>
+            </div>
+          </div>
+          <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div class="rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+              <div class="flex items-center justify-between">
+                <div class="text-xs font-semibold text-slate-200">Last known location</div>
+                <a id="parentMapLink" href="#" target="_blank" rel="noreferrer" class="text-xs text-cyan-300 hover:text-cyan-200">Open map</a>
+              </div>
+              <div class="mt-2 text-sm" id="parentLocation">No location yet.</div>
+              <div class="mt-2 text-xs text-slate-500" id="parentLocationMeta">—</div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+              <div class="text-xs font-semibold text-slate-200">Session</div>
+              <div class="mt-2 text-sm" id="parentSession">Not paired</div>
+              <div class="mt-2 text-xs text-slate-500">In a real app: auth, encryption, auditing, and server-side access controls.</div>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="text-xs font-semibold text-slate-200">Events</div>
+            <div id="parentFeed" class="mt-2 max-h-[420px] overflow-auto rounded-2xl border border-white/10 bg-slate-950/30 p-2"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </template>
+  <template id="tplChild">
+    <section class="mx-auto max-w-6xl px-4 py-10">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-bold">Child App</h1>
+          <p class="mt-1 text-sm text-slate-300">This demo requires explicit consent actions. Nothing is collected silently.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button data-nav="home" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">Back</button>
+          <button id="childStop" class="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100 hover:bg-rose-500/20">Stop sharing</button>
+        </div>
+      </div>
+      <div class="mt-6 grid gap-4 lg:grid-cols-3">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5 lg:col-span-1">
+          <div class="text-sm font-semibold">Pairing</div>
+          <p class="mt-2 text-sm text-slate-300">Generate a code and share it with the parent portal (same site, another tab).</p>
+          <div class="mt-4 grid gap-3">
+            <div>
+              <label class="text-xs text-slate-400" for="childName">Child label (optional)</label>
+              <input id="childName" class="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm outline-none focus:border-cyan-400/60" placeholder="e.g., Alex" />
+            </div>
+            <div>
+              <label class="text-xs text-slate-400" for="childCode">Pairing code</label>
+              <div class="mt-1 flex gap-2">
+                <input id="childCode" autocomplete="off" inputmode="numeric" maxlength="10" class="w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm outline-none focus:border-cyan-400/60" placeholder="Generate or enter" />
+                <button id="childGen" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">Generate</button>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+              <div class="text-xs font-semibold text-slate-200">Consent</div>
+              <p class="mt-1 text-xs text-slate-400">By sharing events, you agree they will be visible to the paired parent portal in this browser/origin. You can stop at any time.</p>
+              <div class="mt-3 flex items-center gap-2">
+                <input id="childConsent" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-slate-900" />
+                <label for="childConsent" class="text-xs text-slate-300">I understand and consent to sharing in this demo</label>
+              </div>
+              <div id="childStatus" class="mt-3 text-xs text-slate-400">Not sharing.</div>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-5 lg:col-span-2">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold">Share</div>
+              <p class="mt-1 text-xs text-slate-400">Send location (permissioned) and simulated activity logs to the parent.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="childPing" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">Send check-in</button>
+              <button id="childShareLoc" class="rounded-xl bg-gradient-to-r from-cyan-400 to-violet-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:opacity-95">Share location</button>
+            </div>
+          </div>
+          <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <div class="rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+              <div class="text-xs font-semibold text-slate-200">Location preview</div>
+              <div class="mt-2 text-sm" id="childLocPreview">No location sent yet.</div>
+              <div class="mt-2 text-xs text-slate-500" id="childLocMeta">—</div>
+              <div class="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <div>
+                  <div class="text-xs font-semibold text-slate-200">Auto-share</div>
+                  <div class="text-xs text-slate-400">Every 30 seconds (while tab is open)</div>
+                </div>
+                <button id="childAutoToggle" class="rounded-lg border border-white/10 bg-slate-950/40 px-3 py-1.5 text-xs hover:bg-white/10">Off</button>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+              <div class="text-xs font-semibold text-slate-200">Add activity log (simulated)</div>
+              <div class="mt-3 grid gap-3">
+                <div>
+                  <label class="text-xs text-slate-400" for="childCategory">Category</label>
+                  <select id="childCategory" class="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm outline-none focus:border-cyan-400/60">
+                    <option value="social">Social</option>
+                    <option value="messages">Messages</option>
+                    <option value="email">Email</option>
+                    <option value="web">Web</option>
+                    <option value="app">App usage</option>
+                    <option value="note">Note</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs text-slate-400" for="childText">Summary</label>
+                  <input id="childText" maxlength="140" class="mt-1 w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm outline-none focus:border-cyan-400/60" placeholder="e.g., Checked in after school" />
+                </div>
+                <button id="childSendLog" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm hover:bg-white/10">Send log</button>
+                <p class="text-xs text-slate-500">This is user-entered demo data; it does not read from device apps.</p>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="text-xs font-semibold text-slate-200">Sent history (local)</div>
+            <div id="childSent" class="mt-2 max-h-[300px] overflow-auto rounded-2xl border border-white/10 bg-slate-950/30 p-2"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </template>
+  <!-- Toast -->
+  <div id="toast" class="pointer-events-none fixed bottom-4 left-1/2 z-50 hidden w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-white/10 bg-slate-900/90 p-4 text-sm text-slate-200 shadow-xl shadow-black/40 backdrop-blur">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="font-semibold" id="toastTitle">Notice</div>
+        <div class="mt-1 text-xs text-slate-300" id="toastMsg">—</div>
+      </div>
+      <button id="toastClose" class="pointer-events-auto rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs hover:bg-white/10" aria-label="Close">Close</button>
+    </div>
+  </div>
+  <script>
+    // -----------------------------
+    // Safety note (policy-aligned):
+    // This code is a consent-based demo. It does not implement covert monitoring.
+    // -----------------------------
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+    const store = {
+      get(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch { return fallback; }
+      },
+      set(key, val) {
+        try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+      },
+      del(key) {
+        try { localStorage.removeItem(key); } catch {}
+      }
+    };
+    const ui = {
+      toast(title, msg) {
+        const t = $("#toast");
+        $("#toastTitle").textContent = title;
+        $("#toastMsg").textContent = msg;
+        t.classList.remove("hidden");
+        clearTimeout(ui._toastTimer);
+        ui._toastTimer = setTimeout(() => t.classList.add("hidden"), 4200);
+      }
+    };
+    function nowISO() {
+      return new Date().toISOString();
+    }
+    function fmtTime(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, { hour12: false });
+      } catch { return iso; }
+    }
+    function safeText(s) {
+      return String(s ?? "").replace(/[\u0000-\u001F\u007F]/g, "").slice(0, 4000);
+    }
+    // Routing
+    function getRoute() {
+      const h = location.hash || "#/";
+      if (h.startsWith("#/parent")) return "parent";
+      if (h.startsWith("#/child")) return "child";
+      return "home";
+    }
+    function navTo(route) {
+      if (route === "home") location.hash = "#/";
+      if (route === "parent") location.hash = "#/parent";
+      if (route === "child") location.hash = "#/child";
+    }
+    // Demo "session" data (per role)
+    const DEMO_KEYS = {
+      parent: {
+        code: "gs_parent_code",
+        events: "gs_parent_events",
+        session: "gs_parent_session"
+      },
+      child: {
+        code: "gs_child_code",
+        name: "gs_child_name",
+        consent: "gs_child_consent",
+        sent: "gs_child_sent",
+        auto: "gs_child_auto"
+      }
+    };
+    // BroadcastChannel manager (per pairing code)
+    function channelName(code) {
+      const c = String(code || "").trim();
+      return `guardiansafe:${c}`;
+    }
+    function validCode(code) {
+      const c = String(code || "").trim();
+      return /^[0-9]{4,10}$/.test(c);
+    }
+    function generateCode() {
+      // 6-digit numeric
+      return String(Math.floor(100000 + Math.random() * 900000));
+    }
+    function eventBadge(cat) {
+      const map = {
+        location: "bg-cyan-400/15 text-cyan-200 border-cyan-400/20",
+        checkin: "bg-emerald-400/15 text-emerald-200 border-emerald-400/20",
+        social: "bg-violet-400/15 text-violet-200 border-violet-400/20",
+        messages: "bg-fuchsia-400/15 text-fuchsia-200 border-fuchsia-400/20",
+        email: "bg-amber-400/15 text-amber-200 border-amber-400/20",
+        web: "bg-sky-400/15 text-sky-200 border-sky-400/20",
+        app: "bg-slate-400/15 text-slate-200 border-slate-400/20",
+        note: "bg-white/10 text-slate-200 border-white/10",
+        system: "bg-white/10 text-slate-200 border-white/10"
+      };
+      const cls = map[cat] || map.note;
+      return `<span class="inline-flex items-center rounded-lg border px-2 py-0.5 text-[11px] ${cls}">${cat}</span>`;
+    }
+    function toCSV(rows) {
+      const esc = (v) => {
+        const s = String(v ?? "");
+        if (/[\n\r",]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      };
+      const headers = ["time", "type", "child", "summary", "lat", "lon", "accuracy_m"];
+      const lines = [headers.join(",")];
+      for (const r of rows) {
+        lines.push([
+          esc(r.time || ""),
+          esc(r.type || ""),
+          esc(r.childName || ""),
+          esc(r.summary || ""),
+          esc(r.location?.lat ?? ""),
+          esc(r.location?.lon ?? ""),
+          esc(r.location?.accuracy ?? "")
+        ].join(","));
+      }
+      return lines.join("\n");
+    }
+    function download(filename, text, mime = "text/plain") {
+      const blob = new Blob([text], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    // Render helpers
+    function mountTemplate(id) {
+      const tpl = document.getElementById(id);
+      const root = document.getElementById("viewRoot");
+      root.innerHTML = "";
+      root.appendChild(tpl.content.cloneNode(true));
+      // Wire generic navigation
+      $$('[data-nav]').forEach(btn => {
+        btn.addEventListener('click', () => navTo(btn.getAttribute('data-nav')));
+      });
+    }
+    // Views
+    function renderLanding() {
+      mountTemplate("tplLanding");
+      $$('[data-nav="parent"]').forEach(b => b.addEventListener("click", () => navTo("parent")));
+      $$('[data-nav="child"]').forEach(b => b.addEventListener("click", () => navTo("child")));
+      // Deep-link anchors (feature/how/faq) keep working
+      // no additional wiring needed
+    }
+    function renderParent() {
+      mountTemplate("tplParent");
+      const codeInput = $("#parentCode");
+      const status = $("#parentPairStatus");
+      const sessionEl = $("#parentSession");
+      const feed = $("#parentFeed");
+      const countsEl = $("#parentCounts");
+      const locEl = $("#parentLocation");
+      const locMeta = $("#parentLocationMeta");
+      const mapLink = $("#parentMapLink");
+      let bc = null;
+      let currentCode = store.get(DEMO_KEYS.parent.code, "");
+      let session = store.get(DEMO_KEYS.parent.session, { code: "", joinedAt: null });
+      let events = store.get(DEMO_KEYS.parent.events, []);
+      codeInput.value = currentCode || "";
+      function setConnected(connected, msg) {
+        status.textContent = msg;
+        status.className = "mt-3 text-xs " + (connected ? "text-emerald-300" : "text-slate-400");
+      }
+      function renderCounts() {
+        countsEl.textContent = `${events.length} event${events.length === 1 ? "" : "s"}`;
+      }
+      function renderLocation() {
+        const lastLoc = [...events].reverse().find(e => e.type === "location" && e.location);
+        if (!lastLoc) {
+          locEl.textContent = "No location yet.";
+          locMeta.textContent = "—";
+          mapLink.href = "#";
+          mapLink.classList.add("pointer-events-none", "opacity-60");
+          return;
+        }
+        const { lat, lon, accuracy } = lastLoc.location;
+        locEl.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        locMeta.textContent = `Accuracy ~${Math.round(accuracy)}m • ${fmtTime(lastLoc.time)}${lastLoc.childName ? ` • ${lastLoc.childName}` : ""}`;
+        const url = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(lat)}&mlon=${encodeURIComponent(lon)}#map=16/${encodeURIComponent(lat)}/${encodeURIComponent(lon)}`;
+        mapLink.href = url;
+        mapLink.classList.remove("pointer-events-none", "opacity-60");
+      }
+      function renderFeed() {
+        if (!events.length) {
+          feed.innerHTML = `<div class="p-4 text-sm text-slate-400">No events yet. Pair with the child app and ask them to send a check-in or share location.</div>`;
+          renderCounts();
+          renderLocation();
+          return;
+        }
+        const items = [...events].slice(-200).reverse().map(e => {
+          const child = e.childName ? `<span class="text-slate-300"> • ${safeText(e.childName)}</span>` : "";
+          const summary = e.summary ? safeText(e.summary) : (e.type === "location" ? "Location shared" : "");
+          const loc = e.location ? `<div class="mt-1 text-xs text-slate-500">${e.location.lat.toFixed(6)}, ${e.location.lon.toFixed(6)} (±${Math.round(e.location.accuracy)}m)</div>` : "";
+          return `
+            <div class="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="text-xs text-slate-400">${fmtTime(e.time)}${child}</div>
+                  <div class="mt-1 text-sm text-slate-100">${summary || "(no details)"}</div>
+                  ${loc}
+                </div>
+                <div class="shrink-0">${eventBadge(e.type)}</div>
+              </div>
+            </div>
+          `;
+        }).join("");
+        feed.innerHTML = `<div class="space-y-2 p-2">${items}</div>`;
+        renderCounts();
+        renderLocation();
+      }
+      function join(code) {
+        const c = String(code || "").trim();
+        if (!validCode(c)) {
+          ui.toast("Invalid code", "Use a 4–10 digit numeric code (e.g., 482193). Generate it in the child app.");
+          return;
+        }
+        try { if (bc) bc.close(); } catch {}
+        bc = new BroadcastChannel(channelName(c));
+        session = { code: c, joinedAt: nowISO() };
+        store.set(DEMO_KEYS.parent.code, c);
+        store.set(DEMO_KEYS.parent.session, session);
+        sessionEl.textContent = `Paired code: ${c}`;
+        setConnected(true, `Connected to ${c}. Waiting for events…`);
+        bc.onmessage = (ev) => {
+          const msg = ev.data || {};
+          if (msg?.kind !== "gs_event") return;
+          const incoming = {
+            time: msg.time || nowISO(),
+            type: safeText(msg.type || "note"),
+            childName: safeText(msg.childName || ""),
+            summary: safeText(msg.summary || ""),
+            location: msg.location && typeof msg.location.lat === "number" ? {
+              lat: msg.location.lat,
+              lon: msg.location.lon,
+              accuracy: Number(msg.location.accuracy || 0)
+            } : null
+          };
+          events.push(incoming);
+          store.set(DEMO_KEYS.parent.events, events);
+          renderFeed();
+          // Minimal toast
+          if (incoming.type === "location") ui.toast("Location received", incoming.childName ? `From ${incoming.childName}` : "New location update");
+          else if (incoming.type === "checkin") ui.toast("Check-in", incoming.summary || "New check-in");
+          else ui.toast("New event", incoming.summary || `Type: ${incoming.type}`);
+        };
+        // ping child to confirm link (best-effort)
+        bc.postMessage({ kind: "gs_system", type: "parent_joined", time: nowISO() });
+      }
+      // Initial render from storage
+      renderFeed();
+      if (session?.code && validCode(session.code)) {
+        sessionEl.textContent = `Paired code: ${session.code}`;
+        setConnected(true, `Reconnected to ${session.code}.`);
+        join(session.code);
+      } else {
+        sessionEl.textContent = "Not paired";
+        setConnected(false, "Not connected.");
+      }
+      $("#parentJoin").addEventListener("click", () => join(codeInput.value));
+      codeInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") join(codeInput.value);
+      });
+      $("#parentClear").addEventListener("click", () => {
+        events = [];
+        store.set(DEMO_KEYS.parent.events, events);
+        renderFeed();
+        ui.toast("Cleared", "Local demo events cleared.");
+      });
+      $("#parentExport").addEventListener("click", () => {
+        const csv = toCSV(events);
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        download(`guardianSafe-events-${stamp}.csv`, csv, "text/csv");
+      });
+    }
+    function renderChild() {
+      mountTemplate("tplChild");
+      const nameInput = $("#childName");
+      const codeInput = $("#childCode");
+      const consentBox = $("#childConsent");
+      const status = $("#childStatus");
+      const sentBox = $("#childSent");
+      const locPreview = $("#childLocPreview");
+      const locMeta = $("#childLocMeta");
+      const autoBtn = $("#childAutoToggle");
+      let bc = null;
+      let autoTimer = null;
+      let childName = store.get(DEMO_KEYS.child.name, "");
+      let code = store.get(DEMO_KEYS.child.code, "");
+      let consent = !!store.get(DEMO_KEYS.child.consent, false);
+      let sent = store.get(DEMO_KEYS.child.sent, []);
+      let auto = !!store.get(DEMO_KEYS.child.auto, false);
+      nameInput.value = childName;
+      codeInput.value = code;
+      consentBox.checked = consent;
+      function setStatus(ok, msg) {
+        status.textContent = msg;
+        status.className = "mt-3 text-xs " + (ok ? "text-emerald-300" : "text-slate-400");
+      }
+      function ensureChannel() {
+        const c = String(codeInput.value || "").trim();
+        if (!validCode(c)) {
+          ui.toast("Pairing required", "Generate or enter a 4–10 digit pairing code first.");
+          return null;
+        }
+        if (!consentBox.checked) {
+          ui.toast("Consent required", "Please tick the consent checkbox to share events in this demo.");
+          return null;
+        }
+        if (bc && code === c) return bc;
+        // reset
+        try { if (bc) bc.close(); } catch {}
+        bc = new BroadcastChannel(channelName(c));
+        code = c;
+        store.set(DEMO_KEYS.child.code, code);
+        bc.onmessage = (ev) => {
+          const msg = ev.data || {};
+          if (msg?.kind === "gs_system" && msg?.type === "parent_joined") {
+            ui.toast("Parent connected", "The parent portal joined this pairing code.");
+          }
+        };
+        setStatus(true, `Ready to share to code ${code}.`);
+        return bc;
+      }
+      function pushSent(e) {
+        sent.push(e);
+        sent = sent.slice(-300);
+        store.set(DEMO_KEYS.child.sent, sent);
+        renderSent();
+      }
+      function renderSent() {
+        if (!sent.length) {
+          sentBox.innerHTML = `<div class="p-4 text-sm text-slate-400">Nothing sent yet.</div>`;
+          return;
+        }
+        const items = [...sent].reverse().map(e => {
+          const summary = safeText(e.summary || (e.type === "location" ? "Location shared" : ""));
+          const loc = e.location ? `<div class="mt-1 text-xs text-slate-500">${e.location.lat.toFixed(6)}, ${e.location.lon.toFixed(6)} (±${Math.round(e.location.accuracy)}m)</div>` : "";
+          return `
+            <div class="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="text-xs text-slate-400">${fmtTime(e.time)}</div>
+                  <div class="mt-1 text-sm text-slate-100">${summary || "(no details)"}</div>
+                  ${loc}
+                </div>
+                <div class="shrink-0">${eventBadge(e.type)}</div>
+              </div>
+            </div>
+          `;
+        }).join("");
+        sentBox.innerHTML = `<div class="space-y-2 p-2">${items}</div>`;
+      }
+      function sendEvent(payload) {
+        const ch = ensureChannel();
+        if (!ch) return;
+        childName = safeText(nameInput.value.trim()).slice(0, 40);
+        store.set(DEMO_KEYS.child.name, childName);
+        store.set(DEMO_KEYS.child.consent, !!consentBox.checked);
+        const ev = {
+          kind: "gs_event",
+          time: nowISO(),
+          type: safeText(payload.type || "note"),
+          childName,
+          summary: safeText(payload.summary || ""),
+          location: payload.location || null
+        };
+        ch.postMessage(ev);
+        pushSent(ev);
+      }
+      async function shareLocationOnce() {
+        const ch = ensureChannel();
+        if (!ch) return;
+        if (!("geolocation" in navigator)) {
+          ui.toast("Not supported", "This browser does not support Geolocation.");
+          return;
+        }
+        locPreview.textContent = "Requesting permission…";
+        locMeta.textContent = "—";
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude, accuracy } = pos.coords;
+            const location = { lat: latitude, lon: longitude, accuracy: accuracy || 0 };
+            const meta = `Accuracy ~${Math.round(accuracy || 0)}m • ${fmtTime(nowISO())}`;
+            locPreview.textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+            locMeta.textContent = meta;
+            sendEvent({ type: "location", summary: "Location shared (consent-based)", location });
+          },
+          (err) => {
+            locPreview.textContent = "Location not shared.";
+            locMeta.textContent = err?.message ? safeText(err.message) : "Permission denied or unavailable.";
+            ui.toast("Location failed", locMeta.textContent);
+          },
+          { enableHighAccuracy: false, timeout: 12000, maximumAge: 15000 }
+        );
+      }
+      function updateAutoUI() {
+        autoBtn.textContent = auto ? "On" : "Off";
+        autoBtn.className = "rounded-lg px-3 py-1.5 text-xs " + (auto
+          ? "bg-emerald-400/20 text-emerald-100 border border-emerald-400/30 hover:bg-emerald-400/25"
+          : "border border-white/10 bg-slate-950/40 hover:bg-white/10");
+      }
+      function stopAuto() {
+        if (autoTimer) clearInterval(autoTimer);
+        autoTimer = null;
+        auto = false;
+        store.set(DEMO_KEYS.child.auto, auto);
+        updateAutoUI();
+      }
+      function startAuto() {
+        const ch = ensureChannel();
+        if (!ch) return;
+        if (autoTimer) return;
+        auto = true;
+        store.set(DEMO_KEYS.child.auto, auto);
+        updateAutoUI();
+        // Send immediately then every 30s
+        shareLocationOnce();
+        autoTimer = setInterval(() => {
+          // best-effort: still requires tab open; browser may throttle timers
+          shareLocationOnce();
+        }, 30000);
+      }
+      // Wire events
+      $("#childGen").addEventListener("click", () => {
+        const c = generateCode();
+        codeInput.value = c;
+        store.set(DEMO_KEYS.child.code, c);
+        ui.toast("Code generated", `Share ${c} with the parent portal.`);
+        ensureChannel();
+      });
+      consentBox.addEventListener("change", () => {
+        store.set(DEMO_KEYS.child.consent, !!consentBox.checked);
+        if (!consentBox.checked) {
+          stopAuto();
+          setStatus(false, "Not sharing.");
+        } else {
+          ensureChannel();
+        }
+      });
+      nameInput.addEventListener("change", () => {
+        store.set(DEMO_KEYS.child.name, safeText(nameInput.value.trim()).slice(0, 40));
+      });
+      codeInput.addEventListener("change", () => {
+        // rebind channel if needed
+        try { if (bc) bc.close(); } catch {}
+        bc = null;
+        ensureChannel();
+      });
+      $("#childPing").addEventListener("click", () => {
+        sendEvent({ type: "checkin", summary: "Child check-in" });
+      });
+      $("#childShareLoc").addEventListener("click", shareLocationOnce);
+      $("#childSendLog").addEventListener("click", () => {
+        const type = $("#childCategory").value;
+        const txt = $("#childText").value.trim();
+        if (!txt) {
+          ui.toast("Add a summary", "Enter a short message to send as an activity log.");
+          return;
+        }
+        sendEvent({ type, summary: txt });
+        $("#childText").value = "";
+      });
+      autoBtn.addEventListener("click", () => {
+        if (auto) stopAuto();
+        else startAuto();
+      });
+      $("#childStop").addEventListener("click", () => {
+        stopAuto();
+        consentBox.checked = false;
+        store.set(DEMO_KEYS.child.consent, false);
+        setStatus(false, "Not sharing.");
+        ui.toast("Stopped", "Sharing stopped for this demo session.");
+      });
+      // Initial state
+      renderSent();
+      updateAutoUI();
+      if (consentBox.checked) {
+        ensureChannel();
+        if (auto) startAuto();
+        else setStatus(true, validCode(codeInput.value) ? `Ready to share to code ${codeInput.value.trim()}.` : "Enter a pairing code.");
+      } else {
+        setStatus(false, "Not sharing.");
+      }
+    }
+    function render() {
+      const route = getRoute();
+      if (route === "parent") renderParent();
+      else if (route === "child") renderChild();
+      else renderLanding();
+    }
+    // Global UI wiring
+    $("#btnParent").addEventListener("click", () => navTo("parent"));
+    $("#btnChild").addEventListener("click", () => navTo("child"));
+    $("#toastClose").addEventListener("click", () => {
+      $("#toast").classList.add("hidden");
+    });
+    window.addEventListener("hashchange", render);
+    $("#year").textContent = String(new Date().getFullYear());
+    // Boot
+    if (!location.hash) location.hash = "#/";
+    render();
+  </script>
+</body>
+</html>
